@@ -12,7 +12,8 @@ import torch.optim as optim
 import torch.nn.functional as F
 from torch.autograd import Variable
 import numpy as np
-
+import pickle
+from collections import OrderedDict
 
 def set_learning_rate(optimizer, lr):
     """Sets the learning rate to the given value"""
@@ -60,7 +61,7 @@ class Net(nn.Module):
 class PolicyValueNet():
     """policy-value network """
     def __init__(self, board_width, board_height,
-                 model_file=None, use_gpu=True):
+                 model_file=None, use_gpu=True, model_type='theano'):
         self.use_gpu = use_gpu
         self.board_width = board_width
         self.board_height = board_height
@@ -74,8 +75,25 @@ class PolicyValueNet():
                                     weight_decay=self.l2_const)
 
         if model_file:
-            net_params = torch.load(model_file)
-            self.policy_value_net.load_state_dict(net_params)
+            # load the model from file
+            if model_type == "pytorch":
+                net_params = torch.load(model_file)
+                self.policy_value_net.load_state_dict(net_params)
+            elif model_type == "theano":
+                # load the model trained using Theano/Lasagne
+                param_theano = pickle.load(open(model_file, 'rb'))
+                keys = ['conv1.weight' ,'conv1.bias' ,'conv2.weight' ,'conv2.bias' ,'conv3.weight' ,'conv3.bias'  
+                        ,'act_conv1.weight' ,'act_conv1.bias' ,'act_fc1.weight' ,'act_fc1.bias'     
+                        ,'val_conv1.weight' ,'val_conv1.bias' ,'val_fc1.weight' ,'val_fc1.bias' ,'val_fc2.weight' ,'val_fc2.bias']
+                param_pytorch = OrderedDict()
+                for key, value in zip(keys, param_theano):
+                    if 'fc' in key and 'weight' in key:
+                        param_pytorch[key] = torch.FloatTensor(value.T)
+                    elif 'conv' in key and 'weight' in key:
+                        param_pytorch[key] = torch.FloatTensor(value[:,:,::-1,::-1].copy())
+                    else:
+                        param_pytorch[key] = torch.FloatTensor(value)
+                self.policy_value_net.load_state_dict(param_pytorch)
 
     def policy_value(self, state_batch):
         """
