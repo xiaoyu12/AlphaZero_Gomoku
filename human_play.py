@@ -17,7 +17,6 @@ from policy_value_net_numpy import PolicyValueNetNumpy
 # from policy_value_net_tensorflow import PolicyValueNet # Tensorflow
 # from policy_value_net_keras import PolicyValueNet  # Keras
 
-
 class Human(object):
     """
     human player
@@ -49,7 +48,7 @@ class Human(object):
 def run():
     n = 5
     width, height = 8, 8
-    model_file = 'best_policy_8_8_5.model'
+    model_file = 'best_policy_8_8_5.model2'
     try:
         board = Board(width=width, height=height, n_in_row=n)
         game = Game(board)
@@ -78,7 +77,7 @@ def run():
         human = Human()
 
         # set start_player=0 for human first
-        game.start_play(human, mcts_player, start_player=0, is_shown=1)
+        game.start_play(human, mcts_player, start_player=0, is_shown=1, show_gui=True)
     except KeyboardInterrupt:
         print('\n\rquit')
 

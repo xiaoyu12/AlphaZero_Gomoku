@@ -5,6 +5,7 @@
 
 from __future__ import print_function
 import numpy as np
+from gui import GUI
 
 
 class Board(object):
@@ -127,6 +128,16 @@ class Board(object):
 
     def get_current_player(self):
         return self.current_player
+    
+    # Convert the board to states to 2-dimensional array to be used in GUI
+    def get_states(self):
+        """Convert the board to states to 2-dimensional array to be used in GUI"""
+        states = np.zeros((self.width, self.height))
+        for loc, player in self.states.items():
+            x = loc // self.width
+            y = loc % self.width
+            states[x][y] = player
+        return states
 
 
 class Game(object):
@@ -135,7 +146,7 @@ class Game(object):
     def __init__(self, board, **kwargs):
         self.board = board
 
-    def graphic(self, board, player1, player2):
+    def graphic(self, board, player1, player2, show_gui=False):
         """Draw the board and show game info"""
         width = board.width
         height = board.height
@@ -146,7 +157,7 @@ class Game(object):
         for x in range(width):
             print("{0:8}".format(x), end='')
         print('\r\n')
-        for i in range(height - 1, -1, -1):
+        for i in range(height): #range(height - 1, -1, -1):
             print("{0:4d}".format(i), end='')
             for j in range(width):
                 loc = i * width + j
@@ -158,8 +169,10 @@ class Game(object):
                 else:
                     print('_'.center(8), end='')
             print('\r\n\r\n')
+        if show_gui:
+            GUI.display(board.get_states())
 
-    def start_play(self, player1, player2, start_player=0, is_shown=1):
+    def start_play(self, player1, player2, start_player=0, is_shown=1, show_gui=False):
         """start a game between two players"""
         if start_player not in (0, 1):
             raise Exception('start_player should be either 0 (player1 first) '
@@ -170,7 +183,7 @@ class Game(object):
         player2.set_player_ind(p2)
         players = {p1: player1, p2: player2}
         if is_shown:
-            self.graphic(self.board, player1.player, player2.player)
+            self.graphic(self.board, player1.player, player2.player, show_gui=show_gui)
         while True:
             current_player = self.board.get_current_player()
             player_in_turn = players[current_player]
@@ -178,14 +191,14 @@ class Game(object):
             print(f"Player {current_player} Move: {move//self.board.width}, {move%self.board.width}")
             self.board.do_move(move)
             if is_shown:
-                self.graphic(self.board, player1.player, player2.player)
+                self.graphic(self.board, player1.player, player2.player, show_gui=show_gui)
             end, winner = self.board.game_end()
             if end:
                 if is_shown:
                     if winner != -1:
-                        print("Game end. Winner is", players[winner])
+                        print("Game ended. Winner is", players[winner])
                     else:
-                        print("Game end. Tie")
+                        print("Game ended. Tie")
                 return winner
 
     def start_self_play(self, player, is_shown=0, temp=1e-3):
