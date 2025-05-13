@@ -77,7 +77,11 @@ class PolicyValueNet():
         if model_file:
             # load the model from file
             if model_type == "pytorch":
-                net_params = torch.load(model_file)
+                if not self.use_gpu:
+                    # load the model trained using PyTorch
+                    net_params = torch.load(model_file, map_location='cpu') 
+                else:
+                    net_params = torch.load(model_file)
                 self.policy_value_net.load_state_dict(net_params)
             elif model_type == "theano":
                 # load the model trained using Theano/Lasagne

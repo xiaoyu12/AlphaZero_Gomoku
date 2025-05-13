@@ -149,7 +149,7 @@ class Game(object):
             root = tkinter.Tk()
             root.geometry('620x620')
             root.resizable(0, 0)
-            self.app = BoardGUI(8, root)
+            self.app = BoardGUI(board.width, root)
 
     def graphic(self, board, player1, player2, show_gui=False):
         """Draw the board and show game info"""
