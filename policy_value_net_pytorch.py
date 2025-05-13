@@ -66,6 +66,13 @@ class PolicyValueNet():
         self.board_width = board_width
         self.board_height = board_height
         self.l2_const = 1e-4  # coef of l2 penalty
+        # check if GPU is available
+        if use_gpu:
+            if torch.cuda.is_available():
+                print("Using GPU")
+            else:
+                print("GPU is not available, using CPU instead.")
+                self.use_gpu = False
         # the policy value net module
         if self.use_gpu:
             self.policy_value_net = Net(board_width, board_height).cuda()

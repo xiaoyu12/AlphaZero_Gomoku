@@ -17,12 +17,13 @@ from policy_value_net_pytorch import PolicyValueNet  # Pytorch
 # from policy_value_net_tensorflow import PolicyValueNet # Tensorflow
 # from policy_value_net_keras import PolicyValueNet # Keras
 #from policy_value_net_numpy import PolicyValueNetNumpy as PolicyValueNet
+import argparse
 
 class TrainPipeline():
-    def __init__(self, init_model=None):
+    def __init__(self, init_model=None, width=8):
         # params of the board and the game
-        self.board_width = 15
-        self.board_height = 15
+        self.board_width = width
+        self.board_height = width
         self.n_in_row = 5
         self.board = Board(width=self.board_width,
                            height=self.board_height,
@@ -194,5 +195,12 @@ class TrainPipeline():
 
 
 if __name__ == '__main__':
-    training_pipeline = TrainPipeline()
+    parser = argparse.ArgumentParser(description='AlphaZero Training Pipeline')
+    parser.add_argument('--init_model', type=str, default=None,
+                        help='initial model file')
+    parser.add_argument('--width', type=int, default=8, help='board width')
+    parser.add_argument('--use_pytorch', action='store_true',
+                        help='use pytorch')
+    args = parser.parse_args()
+    training_pipeline = TrainPipeline(init_model=args.init_model, width=args.width, )
     training_pipeline.run()
