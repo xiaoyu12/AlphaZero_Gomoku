@@ -175,6 +175,7 @@ class Game(object):
             current_player = self.board.get_current_player()
             player_in_turn = players[current_player]
             move = player_in_turn.get_action(self.board)
+            print(f"Player {current_player} Move: {move//self.board.width}, {move%self.board.width}")
             self.board.do_move(move)
             if is_shown:
                 self.graphic(self.board, player1.player, player2.player)

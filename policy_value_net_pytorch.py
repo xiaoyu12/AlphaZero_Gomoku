@@ -60,7 +60,7 @@ class Net(nn.Module):
 class PolicyValueNet():
     """policy-value network """
     def __init__(self, board_width, board_height,
-                 model_file=None, use_gpu=False):
+                 model_file=None, use_gpu=True):
         self.use_gpu = use_gpu
         self.board_width = board_width
         self.board_height = board_height
@@ -82,6 +82,7 @@ class PolicyValueNet():
         input: a batch of states
         output: a batch of action probabilities and state values
         """
+        state_batch = np.array(state_batch)
         if self.use_gpu:
             state_batch = Variable(torch.FloatTensor(state_batch).cuda())
             log_act_probs, value = self.policy_value_net(state_batch)
@@ -117,6 +118,8 @@ class PolicyValueNet():
 
     def train_step(self, state_batch, mcts_probs, winner_batch, lr):
         """perform a training step"""
+        state_batch = np.array(state_batch)
+        mcts_probs = np.array(mcts_probs)
         # wrap in Variable
         if self.use_gpu:
             state_batch = Variable(torch.FloatTensor(state_batch).cuda())
@@ -146,9 +149,9 @@ class PolicyValueNet():
         entropy = -torch.mean(
                 torch.sum(torch.exp(log_act_probs) * log_act_probs, 1)
                 )
-        return loss.data[0], entropy.data[0]
+        #return loss.data[0], entropy.data[0]
         #for pytorch version >= 0.5 please use the following line instead.
-        #return loss.item(), entropy.item()
+        return loss.item(), entropy.item()
 
     def get_policy_param(self):
         net_params = self.policy_value_net.state_dict()
