@@ -5,7 +5,7 @@ Tested in PyTorch 0.2.0 and 0.3.0
 
 @author: Junxiao Song
 """
-
+from __future__ import print_function
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -81,8 +81,8 @@ class PolicyValueNet():
                 self.policy_value_net.load_state_dict(net_params)
             elif model_type == "theano":
                 # load the model trained using Theano/Lasagne
-                param_theano = pickle.load(open(model_file, 'rb'))
-                keys = ['conv1.weight' ,'conv1.bias' ,'conv2.weight' ,'conv2.bias' ,'conv3.weight' ,'conv3.bias'  
+                param_theano = pickle.load(open(model_file, 'rb'), encoding='bytes')
+                """keys = ['conv1.weight' ,'conv1.bias' ,'conv2.weight' ,'conv2.bias' ,'conv3.weight' ,'conv3.bias'  
                         ,'act_conv1.weight' ,'act_conv1.bias' ,'act_fc1.weight' ,'act_fc1.bias'     
                         ,'val_conv1.weight' ,'val_conv1.bias' ,'val_fc1.weight' ,'val_fc1.bias' ,'val_fc2.weight' ,'val_fc2.bias']
                 param_pytorch = OrderedDict()
@@ -93,7 +93,7 @@ class PolicyValueNet():
                         param_pytorch[key] = torch.FloatTensor(value[:,:,::-1,::-1].copy())
                     else:
                         param_pytorch[key] = torch.FloatTensor(value)
-                self.policy_value_net.load_state_dict(param_pytorch)
+                self.policy_value_net.load_state_dict(param_pytorch)"""
 
     def policy_value(self, state_batch):
         """
