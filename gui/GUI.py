@@ -3,7 +3,7 @@ import tkinter
 
 # Gomoku simple GUI by Conway v1.0
 
-class Board(tkinter.Frame):
+class BoardGUI(tkinter.Frame):
     def __init__(self, board_size, master=None):
         tkinter.Frame.__init__(self, master)
         self.master_ = master
@@ -47,12 +47,6 @@ class Board(tkinter.Frame):
                 elif state[row][col] == 2:
                     self.draw_piece(row + 1, col + 1, self.player_2_color)
 
-
-def display(state):
-    app.redraw_board(state)
-    app.update()
-
-root = tkinter.Tk()
-root.geometry('620x620')
-root.resizable(0, 0)
-app = Board(8, root)
+    def display(self, state):
+        self.redraw_board(state)
+        self.update()

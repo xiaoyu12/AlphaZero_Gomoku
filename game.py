@@ -5,8 +5,8 @@
 
 from __future__ import print_function
 import numpy as np
-from gui import GUI
-
+from gui.GUI import BoardGUI
+import tkinter
 
 class Board(object):
     """board for the game"""
@@ -143,8 +143,13 @@ class Board(object):
 class Game(object):
     """game server"""
 
-    def __init__(self, board, **kwargs):
+    def __init__(self, board, show_gui=False, **kwargs):
         self.board = board
+        if show_gui:
+            root = tkinter.Tk()
+            root.geometry('620x620')
+            root.resizable(0, 0)
+            self.app = BoardGUI(8, root)
 
     def graphic(self, board, player1, player2, show_gui=False):
         """Draw the board and show game info"""
@@ -170,7 +175,7 @@ class Game(object):
                     print('_'.center(8), end='')
             print('\r\n\r\n')
         if show_gui:
-            GUI.display(board.get_states())
+            self.app.display(board.get_states())
 
     def start_play(self, player1, player2, start_player=0, is_shown=1, show_gui=False):
         """start a game between two players"""

@@ -51,7 +51,7 @@ def run():
     model_file = 'best_policy_8_8_5.model2'
     try:
         board = Board(width=width, height=height, n_in_row=n)
-        game = Game(board)
+        game = Game(board, show_gui=True)
 
         # ############### human VS AI ###################
         # load the trained policy_value_net in either Theano/Lasagne, PyTorch or TensorFlow
