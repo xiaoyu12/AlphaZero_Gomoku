@@ -191,5 +191,5 @@ class TrainPipeline():
 
 
 if __name__ == '__main__':
-    training_pipeline = TrainPipeline()
+    training_pipeline = TrainPipeline(init_model="best_policy_8_8_5.model2")
     training_pipeline.run()
