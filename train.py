@@ -168,6 +168,8 @@ class TrainPipeline():
 
     def run(self):
         """run the training pipeline"""
+        print("Initial evaluation of the current policy")
+        self.policy_evaluate(n_games=10)
         try:
             for i in range(self.game_batch_num):
                 self.collect_selfplay_data(self.play_batch_size)
