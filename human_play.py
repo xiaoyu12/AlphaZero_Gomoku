@@ -47,7 +47,7 @@ class Human(object):
         return "Human {}".format(self.player)
 
 
-def run(use_pytorch=False, model_file='best_policy_8_8_5.model2', width=8):
+def run(use_pytorch=False, model_file='best_policy_8_8_5.model2', width=8, start_player=0):
     n = 5
     height = width
     try:
@@ -78,7 +78,7 @@ def run(use_pytorch=False, model_file='best_policy_8_8_5.model2', width=8):
         human = Human()
 
         # set start_player=0 for human first
-        game.start_play(human, mcts_player, start_player=0, is_shown=1, show_gui=True)
+        game.start_play(human, mcts_player, start_player=start_player, is_shown=1, show_gui=True)
     except KeyboardInterrupt:
         print('\n\rquit')
 
@@ -95,6 +95,12 @@ if __name__ == '__main__':
                         help='model file')
     parser.add_argument('--width', type=int, default=8, 
                         help='board width')
+    parser.add_argument('--ai_first', action='store_true',
+                        help='AI first')
+
     args = parser.parse_args()
-    run(use_pytorch=use_pytorch, model_file=args.model_file, width=args.width)
+    if args.ai_first:
+        start_player = 1
+    run(use_pytorch=use_pytorch, model_file=args.model_file, width=args.width, 
+        start_player=start_player)
     

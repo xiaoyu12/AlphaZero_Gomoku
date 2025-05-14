@@ -204,6 +204,7 @@ class Game(object):
                         print("Game ended. Winner is", players[winner])
                     else:
                         print("Game ended. Tie")
+                input("Press enter to exit.")
                 return winner
 
     def start_self_play(self, player, is_shown=0, temp=1e-3):
@@ -239,4 +240,5 @@ class Game(object):
                         print("Game end. Winner is player:", winner)
                     else:
                         print("Game end. Tie")
+                
                 return winner, zip(states, mcts_probs, winners_z)
