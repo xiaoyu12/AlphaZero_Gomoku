@@ -13,7 +13,8 @@ from game import Board, Game
 from mcts_pure import MCTSPlayer as MCTS_Pure
 from mcts_alphaZero import MCTSPlayer
 #from policy_value_net import PolicyValueNet  # Theano and Lasagne
-from policy_value_net_pytorch import PolicyValueNet  # Pytorch
+#from policy_value_net_pytorch import PolicyValueNet  # Pytorch
+from policy_value_resnet_pytorch import PolicyValueNet  # Pytorch
 # from policy_value_net_tensorflow import PolicyValueNet # Tensorflow
 # from policy_value_net_keras import PolicyValueNet # Keras
 #from policy_value_net_numpy import PolicyValueNetNumpy as PolicyValueNet
@@ -30,8 +31,8 @@ class TrainPipeline():
                            n_in_row=self.n_in_row)
         self.game = Game(self.board)
         # output files for current and best policy
-        self.current_model_file = f'./current_policy_{self.board_height}_{self.board_width}_5.model'
-        self.best_model_file = f'./best_policy_{self.board_height}_{self.board_width}_5.model'
+        self.current_model_file = f'./res_current_policy_{self.board_height}_{self.board_width}_5.model'
+        self.best_model_file = f'./res_best_policy_{self.board_height}_{self.board_width}_5.model'
         # training params
         self.learn_rate = 2e-3
         self.lr_multiplier = 1.0  # adaptively adjust the learning rate based on KL
@@ -170,7 +171,7 @@ class TrainPipeline():
     def run(self):
         """run the training pipeline"""
         print("Initial evaluation of the current policy")
-        self.policy_evaluate(n_games=10)
+        #self.policy_evaluate(n_games=10)
         try:
             for i in range(self.game_batch_num):
                 self.collect_selfplay_data(self.play_batch_size)
