@@ -20,7 +20,7 @@ from policy_value_net_pytorch import PolicyValueNet  # Pytorch
 import argparse
 
 class TrainPipeline():
-    def __init__(self, init_model=None, width=8):
+    def __init__(self, init_model=None, width=8, model_type='theano'):
         # params of the board and the game
         self.board_width = width
         self.board_height = width
@@ -54,7 +54,8 @@ class TrainPipeline():
             # start training from an initial policy-value net
             self.policy_value_net = PolicyValueNet(self.board_width,
                                                    self.board_height,
-                                                   model_file=init_model)
+                                                   model_file=init_model,
+                                                   model_type=model_type)
         else:
             # start training from a new policy-value net
             self.policy_value_net = PolicyValueNet(self.board_width,
@@ -201,8 +202,8 @@ if __name__ == '__main__':
     parser.add_argument('--init_model', type=str, default=None,
                         help='initial model file')
     parser.add_argument('--width', type=int, default=8, help='board width')
-    parser.add_argument('--use_pytorch', action='store_true',
-                        help='use pytorch')
+    parser.add_argument('--model_type', type=str, default='theano',
+                        help='model type: theano, pytorch, tensorflow, keras')  
     args = parser.parse_args()
-    training_pipeline = TrainPipeline(init_model=args.init_model, width=args.width, )
+    training_pipeline = TrainPipeline(init_model=args.init_model, width=args.width, model_type=args.model_type)
     training_pipeline.run()
