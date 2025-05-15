@@ -99,6 +99,7 @@ if __name__ == '__main__':
                         help='AI first')
 
     args = parser.parse_args()
+    start_player = 0
     if args.ai_first:
         start_player = 1
     run(use_pytorch=use_pytorch, model_file=args.model_file, width=args.width, 
