@@ -14,6 +14,7 @@ from mcts_alphaZero import MCTSPlayer
 from policy_value_net_numpy import PolicyValueNetNumpy
 # from policy_value_net import PolicyValueNet  # Theano and Lasagne
 from policy_value_net_pytorch import PolicyValueNet  # Pytorch
+from policy_value_resnet_pytorch import PolicyValueResNet  # Pytorch ResNet
 # from policy_value_net_tensorflow import PolicyValueNet # Tensorflow
 # from policy_value_net_keras import PolicyValueNet  # Keras
 import sys
@@ -47,7 +48,7 @@ class Human(object):
         return "Human {}".format(self.player)
 
 
-def run(use_pytorch=False, model_file='best_policy_8_8_5.model2', width=8, start_player=0):
+def run(model_type='pytorch', model_file='best_policy_8_8_5.model2', width=8, start_player=0):
     n = 5
     height = width
     try:
@@ -56,9 +57,12 @@ def run(use_pytorch=False, model_file='best_policy_8_8_5.model2', width=8, start
 
         # ############### human VS AI ###################
         # load the trained policy_value_net in either Theano/Lasagne, PyTorch or TensorFlow
-        if use_pytorch:
+        if model_type == 'resnet':
+            best_policy = PolicyValueResNet(width, height, model_file = model_file, use_gpu=False, model_type='pytorch')
+            mcts_player = MCTSPlayer(best_policy.policy_value_fn, c_puct=5, n_playout=800)
+        elif model_type == 'pytorch':
             best_policy = PolicyValueNet(width, height, model_file = model_file, use_gpu=False, model_type='pytorch')
-            mcts_player = MCTSPlayer(best_policy.policy_value_fn, c_puct=5, n_playout=400)
+            mcts_player = MCTSPlayer(best_policy.policy_value_fn, c_puct=5, n_playout=800)
         else:
         # load the provided model (trained in Theano/Lasagne) into a MCTS player written in pure numpy
             try:
@@ -69,7 +73,7 @@ def run(use_pytorch=False, model_file='best_policy_8_8_5.model2', width=8, start
             best_policy = PolicyValueNetNumpy(width, height, policy_param)
             mcts_player = MCTSPlayer(best_policy.policy_value_fn,
                                  c_puct=5,
-                                 n_playout=400)  # set larger n_playout for better performance"""
+                                 n_playout=800)  # set larger n_playout for better performance"""
 
         # uncomment the following line to play with pure MCTS (it's much weaker even with a larger n_playout)
         # mcts_player = MCTS_Pure(c_puct=5, n_playout=1000)
@@ -89,8 +93,8 @@ if __name__ == '__main__':
         use_pytorch = True
 
     parser = argparse.ArgumentParser(description='AlphaZero Gomoku')
-    parser.add_argument('--pytorch', action='store_true',
-                        help='use pytorch')
+    parser.add_argument('--model_type', type=str, default='pytorch',
+                        help='model type: pytorch,theano, or resnet')
     parser.add_argument('--model_file', type=str,  default='best_policy_8_8_5.model2',
                         help='model file')
     parser.add_argument('--width', type=int, default=8, 
@@ -102,6 +106,6 @@ if __name__ == '__main__':
     start_player = 0
     if args.ai_first:
         start_player = 1
-    run(use_pytorch=use_pytorch, model_file=args.model_file, width=args.width, 
+    run(model_type=args.model_type, model_file=args.model_file, width=args.width, 
         start_player=start_player)
     

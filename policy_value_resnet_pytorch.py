@@ -77,7 +77,7 @@ class Net(nn.Module):
         x_val = torch.tanh(self.val_fc2(x_val))
         return x_act, x_val
     
-class PolicyValueNet():
+class PolicyValueResNet():
     """policy-value network """
     def __init__(self, board_width, board_height,
                  model_file=None, use_gpu=True, model_type='theano'):
