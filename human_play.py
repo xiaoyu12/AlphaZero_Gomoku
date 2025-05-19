@@ -3,109 +3,119 @@
 human VS AI models
 Input your move in the format: 2,3
 
-@author: Junxiao Song
 """
 
 from __future__ import print_function
 import pickle
+import sys
+import argparse
 from game import Board, Game
 from mcts_pure import MCTSPlayer as MCTS_Pure
 from mcts_alphaZero import MCTSPlayer
 from policy_value_net_numpy import PolicyValueNetNumpy
-# from policy_value_net import PolicyValueNet  # Theano and Lasagne
-from policy_value_net_pytorch import PolicyValueNet  # Pytorch
-from policy_value_resnet_pytorch import PolicyValueResNet  # Pytorch ResNet
-# from policy_value_net_tensorflow import PolicyValueNet # Tensorflow
-# from policy_value_net_keras import PolicyValueNet  # Keras
-import sys
-import argparse
+from policy_value_net_pytorch import PolicyValueNet  # PyTorch
+from policy_value_resnet_pytorch import PolicyValueResNet  # PyTorch ResNet
 
-class Human(object):
+class Human:
     """
-    human player
+    Human player class to interact with the game.
     """
 
     def __init__(self):
         self.player = None
 
     def set_player_ind(self, p):
+        """
+        Set the player index (1 or 2).
+        """
         self.player = p
 
     def get_action(self, board):
+        """
+        Get the human player's move from input.
+        Validates the move and ensures it is legal.
+        """
         try:
             location = input("Your move: ")
-            if isinstance(location, str):  # for python3
+            if isinstance(location, str):  # For Python 3
                 location = [int(n, 10) for n in location.split(",")]
             move = board.location_to_move(location)
         except Exception as e:
             move = -1
+
+        # Check if the move is valid
         if move == -1 or move not in board.availables:
-            print("invalid move")
+            print("Invalid move. Try again.")
             move = self.get_action(board)
         return move
 
     def __str__(self):
-        return "Human {}".format(self.player)
+        """
+        String representation of the human player.
+        """
+        return f"Human {self.player}"
 
 
 def run(model_type='pytorch', model_file='best_policy_8_8_5.model2', width=8, start_player=0):
-    n = 5
-    height = width
+    """
+    Main function to set up and run the game.
+    Allows human vs AI gameplay with different model types.
+    """
+    n = 5  # Number of pieces in a row to win
+    height = width  # Board height (square board assumed)
+
     try:
+        # Initialize the board and game
         board = Board(width=width, height=height, n_in_row=n)
         game = Game(board, show_gui=True)
 
-        # ############### human VS AI ###################
-        # load the trained policy_value_net in either Theano/Lasagne, PyTorch or TensorFlow
+        # Load the AI model based on the specified type
         if model_type == 'resnet':
-            best_policy = PolicyValueResNet(width, height, model_file = model_file, use_gpu=False, model_type='pytorch')
+            # Use PyTorch ResNet model
+            best_policy = PolicyValueResNet(width, height, model_file=model_file, use_gpu=False, model_type='pytorch')
             mcts_player = MCTSPlayer(best_policy.policy_value_fn, c_puct=5, n_playout=800)
         elif model_type == 'pytorch':
-            best_policy = PolicyValueNet(width, height, model_file = model_file, use_gpu=False, model_type='pytorch')
+            # Use standard PyTorch model
+            best_policy = PolicyValueNet(width, height, model_file=model_file, use_gpu=False, model_type='pytorch')
             mcts_player = MCTSPlayer(best_policy.policy_value_fn, c_puct=5, n_playout=800)
         else:
-        # load the provided model (trained in Theano/Lasagne) into a MCTS player written in pure numpy
+            # Use a pure NumPy model (trained in Theano/Lasagne)
             try:
                 policy_param = pickle.load(open(model_file, 'rb'))
             except:
-                policy_param = pickle.load(open(model_file, 'rb'),
-                                       encoding='bytes')  # To support python3
+                policy_param = pickle.load(open(model_file, 'rb'), encoding='bytes')  # Python 3 compatibility
             best_policy = PolicyValueNetNumpy(width, height, policy_param)
-            mcts_player = MCTSPlayer(best_policy.policy_value_fn,
-                                 c_puct=5,
-                                 n_playout=800)  # set larger n_playout for better performance"""
+            mcts_player = MCTSPlayer(best_policy.policy_value_fn, c_puct=5, n_playout=800)
 
-        # uncomment the following line to play with pure MCTS (it's much weaker even with a larger n_playout)
+        # Uncomment the following line to play with pure MCTS (weaker performance)
         # mcts_player = MCTS_Pure(c_puct=5, n_playout=1000)
 
-        # human player, input your move in the format: 2,3
+        # Initialize the human player
         human = Human()
 
-        # set start_player=0 for human first
+        # Start the game (human vs AI)
         game.start_play(human, mcts_player, start_player=start_player, is_shown=1, show_gui=True)
     except KeyboardInterrupt:
-        print('\n\rquit')
+        print('\nGame interrupted. Exiting...')
 
-use_pytorch = False
+
 if __name__ == '__main__':
-    # if run with --pytorch, use PyTorch
-    if '--pytorch' in sys.argv:
-        use_pytorch = True
-
+    # Parse command-line arguments
     parser = argparse.ArgumentParser(description='AlphaZero Gomoku')
     parser.add_argument('--model_type', type=str, default='pytorch',
-                        help='model type: pytorch,theano, or resnet')
-    parser.add_argument('--model_file', type=str,  default='best_policy_8_8_5.model2',
-                        help='model file')
-    parser.add_argument('--width', type=int, default=8, 
-                        help='board width')
+                        help='Model type: pytorch, theano, or resnet')
+    parser.add_argument('--model_file', type=str, default='best_policy_8_8_5.model2',
+                        help='Path to the model file')
+    parser.add_argument('--width', type=int, default=8,
+                        help='Board width (default: 8)')
     parser.add_argument('--ai_first', action='store_true',
-                        help='AI first')
+                        help='Set AI to play first')
 
     args = parser.parse_args()
-    start_player = 0
-    if args.ai_first:
-        start_player = 1
-    run(model_type=args.model_type, model_file=args.model_file, width=args.width, 
-        start_player=start_player)
-    
+
+    # Determine the starting player (0 for human, 1 for AI)
+    start_player = 1 if args.ai_first else 0
+
+    # Run the game with the specified parameters
+    run(model_type=args.model_type, model_file=args.model_file, width=args.width, start_player=start_player)
+
