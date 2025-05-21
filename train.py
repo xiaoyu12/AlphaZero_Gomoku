@@ -195,7 +195,7 @@ class TrainPipeline():
                                 self.pure_mcts_playout_num < max_mcts_playout_num):
                             self.pure_mcts_playout_num += 1000
                             self.best_win_ratio = 0.75
-                       if self.best_win_ratio == 1.0 and self.pure_mtc_playout_num >= max_mcts_playout_num :
+                        if self.best_win_ratio == 1.0 and self.pure_mtc_playout_num >= max_mcts_playout_num :
                             break;
                             	
         except KeyboardInterrupt:
