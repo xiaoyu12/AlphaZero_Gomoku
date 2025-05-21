@@ -13,15 +13,15 @@ from game import Board, Game
 from mcts_pure import MCTSPlayer as MCTS_Pure
 from mcts_alphaZero import MCTSPlayer
 #from policy_value_net import PolicyValueNet  # Theano and Lasagne
-#from policy_value_net_pytorch import PolicyValueNet  # Pytorch
-from policy_value_resnet_pytorch import PolicyValueResNet as PolicyValueNet  # Pytorch
+from policy_value_net_pytorch import PolicyValueNet  # Pytorch
+#from policy_value_resnet_pytorch import PolicyValueNet  # Pytorch
 # from policy_value_net_tensorflow import PolicyValueNet # Tensorflow
 # from policy_value_net_keras import PolicyValueNet # Keras
 #from policy_value_net_numpy import PolicyValueNetNumpy as PolicyValueNet
 import argparse
 
 class TrainPipeline():
-    def __init__(self, init_model=None, width=8, model_type='theano', oppo_num=3000):
+    def __init__(self, init_model=None, width=8, model_type='theano'):
         # params of the board and the game
         self.board_width = width
         self.board_height = width
@@ -31,8 +31,8 @@ class TrainPipeline():
                            n_in_row=self.n_in_row)
         self.game = Game(self.board)
         # output files for current and best policy
-        self.current_model_file = f'./res_current_policy_{self.board_height}_{self.board_width}_5.model'
-        self.best_model_file = f'./res_best_policy_{self.board_height}_{self.board_width}_5.model'
+        self.current_model_file = f'./current_policy_{self.board_height}_{self.board_width}_5.model4'
+        self.best_model_file = f'./best_policy_{self.board_height}_{self.board_width}_5.model4'
         # training params
         self.learn_rate = 2e-3
         self.lr_multiplier = 1.0  # adaptively adjust the learning rate based on KL
@@ -46,11 +46,11 @@ class TrainPipeline():
         self.epochs = 5  # num of train_steps for each update
         self.kl_targ = 0.02
         self.check_freq = 50
-        self.game_batch_num = 3000
+        self.game_batch_num = 1500
         self.best_win_ratio = 0.0
         # num of simulations used for the pure mcts, which is used as
         # the opponent to evaluate the trained policy
-        self.pure_mcts_playout_num = oppo_num
+        self.pure_mcts_playout_num = 3000
         if init_model:
             # start training from an initial policy-value net
             self.policy_value_net = PolicyValueNet(self.board_width,
@@ -171,8 +171,7 @@ class TrainPipeline():
     def run(self):
         """run the training pipeline"""
         print("Initial evaluation of the current policy")
-        self.best_win_ratio = self.policy_evaluate(n_games=10)
-        max_mcts_playout_num = self.pure_mcts_playout_num + 10000
+        self.best_win_ratio=self.policy_evaluate(n_games=10)
         try:
             for i in range(self.game_batch_num):
                 self.collect_selfplay_data(self.play_batch_size)
@@ -186,17 +185,15 @@ class TrainPipeline():
                     print("current self-play batch: {}".format(i+1))
                     win_ratio = self.policy_evaluate()
                     self.policy_value_net.save_model(self.current_model_file)
-                    if win_ratio == 1.0 or win_ratio > self.best_win_ratio:
+                    if win_ratio > self.best_win_ratio:
                         print("New best policy!!!!!!!!")
                         self.best_win_ratio = win_ratio
                         # update the best_policy
                         self.policy_value_net.save_model(self.best_model_file)
                         if (self.best_win_ratio == 1.0 and
-                                self.pure_mcts_playout_num < max_mcts_playout_num):
+                                self.pure_mcts_playout_num < 5000):
                             self.pure_mcts_playout_num += 1000
-                            self.best_win_ratio = 0.75
-                        else:
-                            break	
+                            self.best_win_ratio = 0.0
         except KeyboardInterrupt:
             print('\n\rquit')
 
@@ -207,8 +204,7 @@ if __name__ == '__main__':
                         help='initial model file')
     parser.add_argument('--width', type=int, default=8, help='board width')
     parser.add_argument('--model_type', type=str, default='theano',
-                        help='model type: theano, pytorch, tensorflow, keras')
-    parser.add_argument('--oppo_num', type=int, default=3000, help='opponent MC search number')  
+                        help='model type: theano, pytorch, tensorflow, keras')  
     args = parser.parse_args()
-    training_pipeline = TrainPipeline(init_model=args.init_model, width=args.width, model_type=args.model_type, oppo_num=args.oppo_num)
+    training_pipeline = TrainPipeline(init_model=args.init_model, width=args.width, model_type=args.model_type)
     training_pipeline.run()
