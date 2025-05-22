@@ -21,7 +21,7 @@ from policy_value_resnet_pytorch import PolicyValueResNet as PolicyValueNet  # P
 import argparse
 
 class TrainPipeline():
-    def __init__(self, init_model=None, width=8, model_type='theano', oppo_num=3000):
+    def __init__(self, init_model=None, width=8, model_type='theano', oppo_num=3000, n_playout=400):
         # params of the board and the game
         self.board_width = width
         self.board_height = width
@@ -37,7 +37,7 @@ class TrainPipeline():
         self.learn_rate = 2e-3
         self.lr_multiplier = 1.0  # adaptively adjust the learning rate based on KL
         self.temp = 1.0  # the temperature param
-        self.n_playout = 400  # num of simulations for each move
+        self.n_playout = n_playout  # num of simulations for each move
         self.c_puct = 5
         self.buffer_size = 10000
         self.batch_size = 512  # mini-batch size for training
@@ -227,6 +227,8 @@ if __name__ == '__main__':
     parser.add_argument('--model_type', type=str, default='theano',
                         help='model type: theano, pytorch, tensorflow, keras')
     parser.add_argument('--oppo_num', type=int, default=3000, help='opponent MC search number')  
+    parser.add_argument('--n_playout', type=int, default=400,
+                        help='number of playouts for MCTS')
     args = parser.parse_args()
-    training_pipeline = TrainPipeline(init_model=args.init_model, width=args.width, model_type=args.model_type, oppo_num=args.oppo_num)
+    training_pipeline = TrainPipeline(init_model=args.init_model, width=args.width, model_type=args.model_type, oppo_num=args.oppo_num, n_playout=args.n_playout)
     training_pipeline.run()
