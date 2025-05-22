@@ -57,14 +57,24 @@ class TrainPipeline():
                                                    self.board_height,
                                                    model_file=init_model,
                                                    model_type=model_type)
+            # Previous best player
+            self.pre_best_player = MCTSPlayer(self.policy_value_net.policy_value_fn,
+                                                c_puct=self.c_puct,
+                                                n_playout=self.n_playout,
+                                                is_selfplay=0)
         else:
             # start training from a new policy-value net
             self.policy_value_net = PolicyValueNet(self.board_width,
                                                    self.board_height)
+            # Use a pure MCTS player as the opponent
+            self.pre_best_player = MCTS_Pure(c_puct=self.c_puct,
+                                             n_playout=self.pure_mcts_playout_num)
+        self.best_policy_value_net = self.policy_value_net
         self.mcts_player = MCTSPlayer(self.policy_value_net.policy_value_fn,
                                       c_puct=self.c_puct,
                                       n_playout=self.n_playout,
                                       is_selfplay=1)
+        
 
     def get_equi_data(self, play_data):
         """augment the data set by rotation and flipping
@@ -153,12 +163,12 @@ class TrainPipeline():
         current_mcts_player = MCTSPlayer(self.policy_value_net.policy_value_fn,
                                          c_puct=self.c_puct,
                                          n_playout=self.n_playout)
-        pure_mcts_player = MCTS_Pure(c_puct=5,
-                                     n_playout=self.pure_mcts_playout_num)
+        #pure_mcts_player = MCTS_Pure(c_puct=5,
+        #                             n_playout=self.pure_mcts_playout_num)
         win_cnt = defaultdict(int)
         for i in range(n_games):
             winner = self.game.start_play(current_mcts_player,
-                                          pure_mcts_player,
+                                          self.pre_best_player, #pure_mcts_player,
                                           start_player=i % 2,
                                           is_shown=0)
             win_cnt[winner] += 1
@@ -171,7 +181,7 @@ class TrainPipeline():
     def run(self):
         """run the training pipeline"""
         print("Initial evaluation of the current policy")
-        self.best_win_ratio = self.policy_evaluate(n_games=10)
+        #self.best_win_ratio = self.policy_evaluate(n_games=10)
         max_mcts_playout_num = self.pure_mcts_playout_num + 10000
         try:
             for i in range(self.game_batch_num):
@@ -186,18 +196,25 @@ class TrainPipeline():
                     print("current self-play batch: {}".format(i+1))
                     win_ratio = self.policy_evaluate()
                     self.policy_value_net.save_model(self.current_model_file)
-                    if win_ratio == 1.0 or win_ratio > self.best_win_ratio:
+                    if win_ratio > 0.5: #== 1.0 or win_ratio > self.best_win_ratio:
                         print("New best policy!!!!!!!!")
                         self.best_win_ratio = win_ratio
                         # update the best_policy
                         self.policy_value_net.save_model(self.best_model_file)
-                        if (self.best_win_ratio == 1.0 and
+                        self.best_policy_value_net = self.policy_value_net
+                        self.pre_best_player = MCTSPlayer(self.policy_value_net.policy_value_fn,
+                                                           c_puct=self.c_puct,
+                                                           n_playout=self.n_playout,
+                                                           is_selfplay=0)
+                    elif win_ratio < 0.3:   # Very weak policy, rollback to current best model
+                        self.policy_value_net = self.best_policy_value_net    
+                        """if (self.best_win_ratio == 1.0 and
                                 self.pure_mcts_playout_num < max_mcts_playout_num):
                             self.pure_mcts_playout_num += 1000
                             self.best_win_ratio = 0.75
                         if self.best_win_ratio == 1.0 and self.pure_mtc_playout_num >= max_mcts_playout_num :
                             break;
-                            	
+                        """    	
         except KeyboardInterrupt:
             print('\n\rquit')
 
